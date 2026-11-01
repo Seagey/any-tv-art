@@ -1,0 +1,93 @@
+name: TV report
+description: Tell us what happened when you tried any-tv-art on your TV. This is how a TV moves to "works".
+title: "TV report: <brand> <model>"
+labels: ["tv-report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for trying it. Nothing in this repo has been run on a real TV by us yet, so your
+        report is how a TV gets onto the "works" list. A family only moves to "Reported by owners"
+        after someone outside our house reports it here.
+
+        **Before you post:** do not include your home address, Wi-Fi name, passwords, calendar links,
+        or the contents of your `config.json`.
+  - type: input
+    id: brand
+    attributes:
+      label: TV brand
+      placeholder: Sony, Samsung, LG, TCL, Hisense, Philips ...
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: Printed on the back or under Settings, About. A model number of a TV is fine to share; a serial number is not.
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and version
+      placeholder: Google TV on Android 14, Tizen 6, webOS 22 ...
+    validations:
+      required: true
+  - type: dropdown
+    id: route
+    attributes:
+      label: Which route did you try?
+      options:
+        - Google TV or Android TV, screensaver app
+        - Samsung with Art Mode, daily picture
+        - Another family (say which, in the details below)
+    validations:
+      required: true
+  - type: dropdown
+    id: computer
+    attributes:
+      label: With or without an always-on computer?
+      options:
+        - With an always-on computer (the bridge)
+        - Without a computer (the TV app on its own)
+        - Samsung with Art Mode, no daily picture
+    validations:
+      required: true
+  - type: textarea
+    id: worked
+    attributes:
+      label: What worked
+      description: For example "the art appeared after 10 minutes idle", "any button went back to TV", "the daily picture arrived".
+    validations:
+      required: true
+  - type: textarea
+    id: failed
+    attributes:
+      label: What did not work
+      description: What you saw, and the exact message if there was one. Say which step you were on.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Output of `anytvart report`
+      description: |
+        Run `.venv/bin/anytvart report --tv "YourTV"` and paste what it prints. It takes out IP
+        addresses, MAC addresses, serials and the names it knows about, but **read it through and
+        delete anything personal it missed.**
+      render: json
+  - type: checkboxes
+    id: report-read
+    attributes:
+      label: Privacy
+      options:
+        - label: I read the report and removed anything personal.
+          required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos (optional)
+      description: |
+        A photo of the TV showing the art helps. **Before you attach one:** crop it to just the TV,
+        and remove its location (switch off location for the camera, or use a photo editor's "remove
+        location" option). A photo can show the inside of your house and where it was taken.

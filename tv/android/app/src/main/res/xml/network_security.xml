@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The bridge is on the home network over plain http, and its address is only known at setup, so
+     cleartext cannot be pinned to one host. The page itself loads only from the app's own https
+     origin, and ArtView refuses every other address, so only the bridge fetch in ArtController
+     ever uses http. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

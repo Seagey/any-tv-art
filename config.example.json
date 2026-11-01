@@ -1,0 +1,40 @@
+{
+  "_comment": "Copy this file to config.json and change it. Every setting is explained in docs/CONFIG.md.",
+
+  "timezone": "Australia/Melbourne",
+  "place": {"name": "Melbourne", "country": "AU"},
+  "price_kwh": 0.40,
+
+  "photos": {"folder": "photos", "pick": "day", "focus": "centre"},
+
+  "look": {
+    "style": "mat",
+    "mat": {"colour": "#ece6da", "width": 0.085, "bevel": true, "light": "top-left", "shadow": 0.5},
+    "grain": {"on": true, "strength": 0.5},
+    "flatten": {"strength": 0.6},
+    "label": {"on": true, "side": "left"}
+  },
+
+  "blocks": [
+    {"type": "date"},
+    {"type": "weather"},
+    {"type": "calendar"},
+    {"type": "reminders"},
+    {"type": "quote", "on": false}
+  ],
+  "weather": {"units": "celsius"},
+  "calendar": {"ics_urls": [], "days": 2, "max": 3, "hide": [], "empty_text": "Nothing planned today"},
+  "reminders": [{"text": "Bins out tonight", "days": ["mon"], "dots": ["#b8483c", "#4b8b4f"]}],
+  "quote": {"text": "", "lines": []},
+  "date_order": "day-month",
+  "clock": "12h",
+
+  "art": {"night_off": "22:00", "morning_on": "07:00", "picture_hour": 5},
+  "bridge": {"port": 5430, "url": "http://192.0.2.5:5430"},
+
+  "tvs": [
+    {"name": "Lounge", "kind": "android", "ip": "192.0.2.20", "size_inch": 65, "app_px": [1920, 1080],
+     "panel": "lcd", "art_hours": "idle"},
+    {"name": "Hall", "kind": "samsung-art", "ip": "192.0.2.10", "size_inch": 55}
+  ]
+}

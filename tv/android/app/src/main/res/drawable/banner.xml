@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180 TV banner: a matted picture on a dark wall. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp" android:height="180dp"
+    android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#1B1B1B" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#EFE9DC" android:pathData="M80,24h160v112h-160z" />
+    <path android:fillColor="#6E8A91" android:pathData="M100,42h120v70h-120z" />
+    <path android:fillColor="#C8B58F" android:pathData="M100,86h120v26h-120z" />
+    <path android:fillColor="#8A7F6A" android:pathData="M110,124h60v3h-60z" />
+</vector>

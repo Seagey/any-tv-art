@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>any-tv-art picture</title>
+<!-- The one template. On a Mac, anytvart/render.py fills in the data and headless Chrome takes the
+     screenshot (4K for a Samsung in Art Mode). On Android the TV app loads this page from its own
+     files and calls render(data), then setLight() every few minutes. Nothing here loads from the
+     internet.
+
+     Everything is laid out on a 1920x1080 stage and scaled to the screen, so 4K, 1080p and 720p
+     are the same picture. Sizes that must look real on the wall (bevel, grain) are worked out in
+     millimetres from screen.mm_per_px. -->
+<style>
+/*FONTS*/
+@font-face { font-family: "Cormorant Garamond"; font-weight: 500; font-display: block; src: url(fonts/CormorantGaramond-Medium.ttf) format("truetype"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 600; font-display: block; src: url(fonts/CormorantGaramond-SemiBold.ttf) format("truetype"); }
+@font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 500; font-display: block; src: url(fonts/CormorantGaramond-MediumItalic.ttf) format("truetype"); }
+@font-face { font-family: "Jost"; font-weight: 400; font-display: block; src: url(fonts/Jost-Regular.ttf) format("truetype"); }
+@font-face { font-family: "Jost"; font-weight: 500; font-display: block; src: url(fonts/Jost-Medium.ttf) format("truetype"); }
+/*/FONTS*/
+:root {
+  --mat: #ece6da; --ink: #2c2a27; --ink-2: #77716a; --rule: #c9c1b4;
+  --core-lit: #fbf8f1; --core-shade: #d8d0c2; --bevel: 3px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; background: var(--mat); }
+#comp { position: absolute; inset: 0; }
+.serif { font-family: "Cormorant Garamond", Georgia, serif; }
+.sans { font-family: "Jost", "Helvetica Neue", Arial, sans-serif; }
+
+/* The mat: paper colour, a faint large-scale unevenness and (when the pixels are small enough) grain. */
+.paper { position: absolute; inset: 0; pointer-events: none; }
+.paper.tone { opacity: .28; mix-blend-mode: multiply; }
+/* Room light falls across the mat from the light side, very softly, as it does on a real print. */
+.falloff { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply; }
+.paper.grain { mix-blend-mode: multiply; }
+
+/* The window cut in the mat. Real mats are cut at 45 degrees, so the white core shows as a thin
+   edge: lit on the side facing the light, in shade on the other. Borders mitre at the corners,
+   which is exactly what a bevel cut looks like. */
+.window { position: absolute; }
+.window .bevel { position: absolute; inset: calc(-1 * var(--bevel)); border: var(--bevel) solid;
+  border-color: var(--core-lit) var(--core-shade) var(--core-shade) var(--core-lit); }
+.light-tr .window .bevel { border-color: var(--core-lit) var(--core-lit) var(--core-shade) var(--core-shade); }
+.light-top .window .bevel { border-color: var(--core-lit) var(--core-lit) var(--core-shade) var(--core-lit); }
+.window .photo { position: absolute; inset: 0; overflow: hidden; background: #6b6862; }
+.window img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* The photo sits behind the mat, so the mat's edge throws a small shadow onto it. */
+.window .shade { position: absolute; inset: 0; pointer-events: none; }
+.no-bevel .window .bevel { display: none; }
+
+/* Full style: the photo to the edges, words small in a corner. */
+.full .window { inset: 0; }
+.full .window .bevel, .full .window .shade { display: none; }
+
+/* The museum label, set in the bottom mat (mat style) or in a corner (full style). */
+#words { position: absolute; display: flex; align-items: baseline; white-space: nowrap; color: var(--ink); }
+#words .date { font-size: 34px; font-weight: 600; flex: none; }
+#words .item { font-size: 21px; letter-spacing: .03em; color: var(--ink-2); flex: none; }
+#words .item.events { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+#words .item + .item::before, #words .date + .item::before { content: ""; display: inline-block; width: 1px; height: 22px;
+  background: var(--rule); margin: 0 22px; vertical-align: -4px; }
+#words .ev + .ev::before { content: "\00b7"; margin: 0 12px; }
+#words .ev b { font-weight: 500; color: var(--ink); margin-right: 8px; }
+#words .quote { font-family: "Cormorant Garamond", Georgia, serif; font-style: italic; font-size: 26px; letter-spacing: 0; }
+#words .item.end { margin-left: auto; color: var(--ink); }
+#words .item.end ~ .item.end { margin-left: 0; }
+.side-right #words { justify-content: flex-end; }
+.side-right #words .item.end { margin-left: 0; }
+.dots { display: inline-flex; gap: 6px; margin-right: 10px; vertical-align: middle; }
+.dot { width: .8em; height: .8em; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.14); display: inline-block; }
+.full #words { flex-direction: column; align-items: flex-start; gap: 6px; color: #fbfaf7;
+  text-shadow: 0 0 16px rgba(8,12,18,.6), 0 1px 2px rgba(8,12,18,.45); }
+.full.side-right #words { align-items: flex-end; }
+.full #words .item, .full #words .item.end { color: inherit; margin: 0; }
+.full #words .item::before, .full #words .date + .item::before { display: none; }
+.full #words .date { font-size: 30px; }
+
+/* The calibration card (setup only): mid-grey, a patch at the mat's white, a dark patch, and
+   markers on every edge and corner. A phone photo of it beside white paper tells the setup agent
+   what the screen really shows. */
+#card { position: absolute; inset: 0; display: none; background: #777; font-family: "Jost", Arial, sans-serif; color: #111; }
+.card #card { display: block; }
+.card #comp { display: none; }
+#card .patch { position: absolute; width: 300px; height: 300px; top: 300px; display: flex; align-items: flex-end;
+  justify-content: center; padding-bottom: 14px; font-size: 22px; letter-spacing: .08em; }
+#card .mark { position: absolute; background: #e6007e; }
+#card .corner { position: absolute; width: 90px; height: 90px; border: 0 solid #e6007e; }
+#card .say { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font-size: 30px; color: #eee; }
+
+/* Room light, on top of everything: the screen follows the room down at dusk and warms up. */
+#warm, #dim { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 60s linear; }
+#warm { background: rgb(255, 176, 104); mix-blend-mode: multiply; }
+#dim { background: #000; }
+.instant #warm, .instant #dim { transition: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="comp">
+    <svg class="paper tone" id="tone" width="1920" height="1080" aria-hidden="true">
+      <filter id="f-tone" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.0035" numOctaves="3" seed="7"/>
+        <feColorMatrix type="matrix" values="0 0 0 0 .5  0 0 0 0 .48  0 0 0 0 .45  0 0 0 -.9 .62"/>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#f-tone)"/>
+    </svg>
+    <svg class="paper grain" id="grain" width="1920" height="1080" aria-hidden="true">
+      <filter id="f-grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence id="grain-noise" type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
+        <feColorMatrix type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="table" tableValues="0 0"/></feComponentTransfer>
+      </filter>
+      <rect width="100%" height="100%" filter="url(#f-grain)"/>
+    </svg>
+    <div class="falloff" id="falloff"></div>
+    <div class="window" id="window">
+      <div class="bevel"></div>
+      <div class="photo" id="photo-box"></div>
+      <div class="shade" id="shade"></div>
+    </div>
+    <div id="words"></div>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <!-- Flattening: a print cannot reach a screen's black or its white. Lift the blacks, roll the
+         highlights off below the mat's white, take a little saturation out. -->
+    <filter id="f-flat" color-interpolation-filters="sRGB">
+      <feComponentTransfer id="flat-curve">
+        <feFuncR type="table" tableValues="0 1"/><feFuncG type="table" tableValues="0 1"/><feFuncB type="table" tableValues="0 1"/>
+      </feComponentTransfer>
+      <feColorMatrix id="flat-sat" type="saturate" values="1"/>
+    </filter>
+  </svg>
+  <div id="card"></div>
+  <div id="warm"></div>
+  <div id="dim"></div>
+</div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var stage = $("stage");
+  var W = 1920, H = 1080;
+
+  function fit() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H) || 1;
+    stage.style.transform = "translate(" + (window.innerWidth - W * s) / 2 + "px," + (window.innerHeight - H * s) / 2 + "px) scale(" + s + ")";
+    return s;
+  }
+  window.addEventListener("resize", fit);
+
+  function num(v, d) { return typeof v === "number" && isFinite(v) ? v : d; }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // A colour a little lighter or darker than the mat, for the bevel core and the label rules.
+  function shift(hex, amt) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return hex;
+    var n = parseInt(m[1], 16), out = [16, 8, 0].map(function (b) {
+      var c = (n >> b) & 255; return Math.round(amt > 0 ? c + (255 - c) * amt : c * (1 + amt));
+    });
+    return "#" + out.map(function (c) { return ("0" + clamp(c, 0, 255).toString(16)).slice(-2); }).join("");
+  }
+
+  // The tone curve. s is the strength, 0 (the photo as it is) to 1 (a matte print's range, about 56:1).
+  function curve(s, white) {
+    var lo = 0.075 * s, hi = 1 - (1 - white) - 0.02 * s, out = [];
+    for (var i = 0; i <= 16; i++) {
+      var x = i / 16;
+      // A soft shoulder: highlights bend over instead of clipping.
+      var y = x < 0.7 ? x : 0.7 + (1 - Math.exp(-(x - 0.7) * 3.2)) / 3.2 / ((1 - Math.exp(-0.3 * 3.2)) / 3.2) * 0.3;
+      y = x + (y - x) * s;
+      out.push((lo + y * (hi - lo)).toFixed(4));
+    }
+    return out.join(" ");
+  }
+
+  function words(I, look) {
+    var box = $("words"); box.innerHTML = "";
+    if (!I || look.label === false || (look.label && look.label.on === false)) return;
+    var on = {}; (I.blocks || []).forEach(function (b) { on[b] = true; });
+    var evs = (I.events && I.events.length) ? I.events : (I.empty_text ? [{ when: "", title: I.empty_text }] : []);
+    var ends = [];
+    (I.blocks || []).forEach(function (b) {
+      if (b === "date" && I.date) box.appendChild(el("span", "date serif", I.date));
+      if (b === "weather" && I.weather) box.appendChild(el("span", "item sans", I.weather));
+      if (b === "calendar" && evs.length) {
+        var s = el("span", "item events sans");
+        evs.forEach(function (e) { var sp = el("span", "ev"); if (e.when) sp.appendChild(el("b", null, e.when)); sp.appendChild(document.createTextNode(e.title)); s.appendChild(sp); });
+        box.appendChild(s);
+      }
+      if (b === "reminders") (I.reminders || []).forEach(function (r) {
+        var sp = el("span", "item end sans");
+        if (r.dots && r.dots.length) { var d = el("span", "dots"); r.dots.forEach(function (c) { var x = el("span", "dot"); x.style.background = c; d.appendChild(x); }); sp.appendChild(d); }
+        sp.appendChild(document.createTextNode(r.text)); ends.push(sp);
+      });
+      if (b === "quote" && I.quote) ends.push(el("span", "item end quote", I.quote));
+    });
+    ends.forEach(function (e) { box.appendChild(e); });
+  }
+
+  window.setLight = function (L) {
+    L = L || {};
+    $("dim").style.opacity = clamp(num(L.dim, 0), 0, 0.9);
+    $("warm").style.opacity = clamp(num(L.warm, 0), 0, 1) * 0.42;
+  };
+
+  function card(matc) {
+    var c = $("card"); c.innerHTML = "";
+    c.appendChild(el("div", "say", "Setup: take a photo of this screen with white paper beside it"));
+    [["MAT WHITE", matc, "#2c2a27", 360], ["SCREEN WHITE", "#ffffff", "#2c2a27", 810], ["DARK", "#141414", "#bbb", 1260]].forEach(function (p) {
+      var d = el("div", "patch", p[0]); d.style.background = p[1]; d.style.color = p[2]; d.style.left = p[3] + "px"; c.appendChild(d);
+    });
+    // Edge markers 4 px from each edge: if one is missing in the photo, the TV is cutting the
+    // picture off (overscan) and Screen Fit or Just Scan fixes it.
+    [[0, 4, 1920, 4], [0, 1072, 1920, 4], [4, 0, 4, 1080], [1912, 0, 4, 1080]].forEach(function (r) {
+      var m = el("div", "mark"); m.style.left = r[0] + "px"; m.style.top = r[1] + "px"; m.style.width = r[2] + "px"; m.style.height = r[3] + "px"; c.appendChild(m);
+    });
+    [["left", "top"], ["right", "top"], ["left", "bottom"], ["right", "bottom"]].forEach(function (k) {
+      var m = el("div", "corner"); m.style[k[0]] = "24px"; m.style[k[1]] = "24px";
+      m.style["border" + k[0][0].toUpperCase() + k[0].slice(1) + "Width"] = "10px";
+      m.style["border" + k[1][0].toUpperCase() + k[1].slice(1) + "Width"] = "10px"; c.appendChild(m);
+    });
+  }
+
+  window.render = function (data) {
+    data = data || {};
+    document.body.dataset.ready = "";
+    stage.classList.add("instant");
+    var look = data.look || {}, mat = look.mat || {}, scr = data.screen || {}, safe = data.safe || {};
+    var style = look.style === "full" ? "full" : "mat";
+    var side = (look.label && look.label.side) === "right" ? "right" : "left";
+    var light = mat.light || "top-left";
+    stage.className = [style, "side-" + side, "light-" + (light === "top-right" ? "tr" : light === "top" ? "top" : "tl"),
+                       mat.bevel === false ? "no-bevel" : "", data.card ? "card" : ""].join(" ");
+    if (data.card) card(mat.colour || mat.color || "#ece6da");
+    var mmpx = num(scr.mm_per_px, 0.5);            // millimetres per stage pixel on the real screen
+    var px = function (mm) { return mm / mmpx; };  // a real-world size in stage pixels
+
+    // Colours.
+    var matc = mat.colour || mat.color || "#ece6da";
+    var root = document.documentElement.style;
+    root.setProperty("--mat", matc);
+    root.setProperty("--core-lit", shift(matc, 0.75));    // the cut core is whiter than the mat face
+    root.setProperty("--core-shade", shift(matc, 0.12));
+    root.setProperty("--rule", shift(matc, -0.17));
+    root.setProperty("--bevel", Math.max(1.5, Math.min(8, px(2.5))).toFixed(2) + "px"); // a 2.5 mm bevel, as cut by hand
+
+    // The safe area: everything that matters stays inside what the calibration card proved visible.
+    var sx = W * num(safe.left, 0) / 100, sy = H * num(safe.top, 0) / 100;
+    var sw = W - sx - W * num(safe.right, 0) / 100, sh = H - sy - H * num(safe.bottom, 0) / 100;
+    var dx = data.drift ? num(data.drift.x, 0) : 0, dy = data.drift ? num(data.drift.y, 0) : 0;
+
+    var win = $("window"), box = $("words");
+    if (style === "mat") {
+      // Mat width as a share of the screen height, with the bottom heavier, as framers cut it.
+      var m = clamp(num(mat.width, 0.085), 0.03, 0.2) * sh, bottom = m * 1.55;
+      var labelOn = !(look.label === false || (look.label && look.label.on === false));
+      if (!labelOn) bottom = m * 1.15;
+      win.style.left = (sx + m * 1.25 + dx) + "px"; win.style.top = (sy + m + dy) + "px";
+      win.style.width = (sw - m * 2.5) + "px"; win.style.height = (sh - m - bottom) + "px";
+      box.style.left = (sx + m * 1.25 + dx) + "px"; box.style.right = (W - sx - sw + m * 1.25 - dx) + "px";
+      box.style.top = (sy + sh - bottom + bottom * 0.32 + dy) + "px"; box.style.bottom = "auto"; box.style.height = "40px";
+      // The mat's shadow on the photo, falling away from the light.
+      var sh0 = clamp(num(mat.shadow, 0.5), 0, 1), d = Math.max(2, px(1.5)) * (0.5 + sh0);
+      var ox = light === "top-right" ? -d : light === "top" ? 0 : d;
+      $("shade").style.boxShadow = "inset " + ox.toFixed(1) + "px " + d.toFixed(1) + "px " + (d * 2.2).toFixed(1) + "px rgba(0,0,0," + (0.42 * sh0).toFixed(3) + ")";
+    } else {
+      win.style.left = (dx) + "px"; win.style.top = (dy) + "px"; win.style.width = W + "px"; win.style.height = H + "px";
+      box.style.top = "auto"; box.style.height = "auto";
+      box.style.bottom = (H - sy - sh + 64 - dy) + "px";
+      if (side === "right") { box.style.right = (W - sx - sw + 72 - dx) + "px"; box.style.left = "auto"; }
+      else { box.style.left = (sx + 72 + dx) + "px"; box.style.right = "auto"; }
+      $("shade").style.boxShadow = "none";
+    }
+
+    // Paper: the faint unevenness always (it is centimetres across, so any screen carries it); the
+    // grain only where a pixel is small enough to draw it. Cotton paper's tooth is about a fifth of
+    // a millimetre, so on a 98 inch at 1080p (about 1.1 mm a pixel) grain would be stamped noise.
+    var g = look.grain || {}, gOn = g.on !== false && style === "mat";
+    // Grain depends on the TV's real pixel, not the stage pixel (a 4K Frame has two per stage pixel).
+    var dev = num(scr.device_mm_per_px, mmpx);
+    var gStrength = clamp(num(g.strength, 0.5), 0, 1) * clamp((0.9 - dev) / 0.6, 0, 1);
+    $("tone").style.display = style === "mat" ? "" : "none";
+    $("grain").style.display = gOn && gStrength > 0.02 ? "" : "none";
+    $("grain-noise").setAttribute("baseFrequency", clamp(mmpx / 0.35, 0.35, 1.4).toFixed(3));
+    var a = (0.1 * gStrength).toFixed(3);
+    $("grain").querySelector("feFuncA").setAttribute("tableValues", "0 " + a);
+
+    // Flattening, set by strength. The photo's white stays below the mat's white.
+    var f = look.flatten || {}, fs = clamp(num(f.strength, 0.6), 0, 1);
+    var curveVals = curve(fs, 0.93);
+    ["feFuncR", "feFuncG", "feFuncB"].forEach(function (t) { $("flat-curve").querySelector(t).setAttribute("tableValues", curveVals); });
+    $("flat-sat").setAttribute("values", (1 - 0.14 * fs).toFixed(3));
+    var img = $("photo");
+    if (!img) { img = document.createElement("img"); img.id = "photo"; img.alt = ""; $("photo-box").appendChild(img); }
+    img.style.filter = fs > 0 ? "url(#f-flat)" : "none";
+    img.style.objectPosition = data.focus || "50% 50%";
+
+    var fall = { "top-right": "to bottom left", "top": "to bottom" }[light] || "to bottom right";
+    $("falloff").style.background = style === "mat" ? "linear-gradient(" + fall + ", rgba(255,255,255,0) 30%, rgba(90,80,64,.07))" : "none";
+    words(data.info, look);
+    window.setLight(data.light);
+    fit();
+
+    var photoReady = new Promise(function (ok) {
+      if (!data.photo) { ok(); return; }
+      img.onload = img.onerror = function () { ok(); };
+      img.src = data.photo;
+      if (img.complete && img.naturalWidth) ok();
+    });
+    var fonts = document.fonts ? document.fonts.ready : Promise.resolve();
+    return Promise.all([photoReady, fonts]).then(function () {
+      // The label is one line: drop whole events from the end rather than cut a word in half.
+      var evs = box.querySelector(".events");
+      while (evs && evs.children.length > 1 && evs.scrollWidth > evs.clientWidth + 1) evs.removeChild(evs.lastChild);
+      void stage.offsetWidth;
+      stage.classList.remove("instant");
+      document.body.dataset.ready = "1";
+    });
+  };
+
+  var DATA = /*DATA*/null;
+  if (DATA) window.render(DATA);
+  else fit();
+})();
+</script>
+</body>
+</html>
