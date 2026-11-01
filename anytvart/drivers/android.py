@@ -110,8 +110,16 @@ class Android:
         top = self.shell("dumpsys activity activities | grep -E 'topResumedActivity|mResumedActivity' | head -1")
         playing = "state=3" in self.shell("dumpsys media_session | grep -E 'state=PlaybackState'")
         ours = (wake == "Dreaming" and APP in dreams) or APP in top
-        return {"reachable": True, "awake": wake in ("Awake", "Dreaming"), "ours": ours, "playing": playing,
-                "wakefulness": wake}
+        # YouTube shows no playing media session, so any app on screen other than the home screen
+        # and ours counts as in use: the bridge never opens art over it (our own test, 1 Nov 2026).
+        top_pkg = re.search(r"u0 ([\w.]+)/", top)
+        top_pkg = top_pkg.group(1) if top_pkg else ""
+        home = self.shell("cmd package resolve-activity --brief -a android.intent.action.MAIN "
+                          "-c android.intent.category.HOME").strip().splitlines()
+        home = home[-1].split("/")[0] if home else ""
+        in_app = wake == "Awake" and top_pkg not in ("", home, APP)
+        return {"reachable": True, "awake": wake in ("Awake", "Dreaming"), "ours": ours,
+                "playing": playing or in_app, "in_app": top_pkg if in_app else None, "wakefulness": wake}
 
     # ------------------------------------------------------------------ changes, always recorded
 

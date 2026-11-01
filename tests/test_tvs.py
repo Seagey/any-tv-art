@@ -93,6 +93,15 @@ class AndroidTests(unittest.TestCase):
         self.assertTrue(st["awake"] and st["ours"])
         self.assertFalse(st["playing"])
 
+    def test_an_app_on_screen_counts_as_in_use(self):
+        # YouTube on screen with no playing media session: still in use, so no art over it.
+        self.fake.wake, self.fake.top = "Awake", "com.google.android.youtube.tv"
+        st = self.android().state()
+        self.assertTrue(st["playing"])
+        self.assertEqual(st["in_app"], "com.google.android.youtube.tv")
+        self.fake.top = "com.google.android.apps.tv.launcherx"
+        self.assertFalse(self.android().state()["playing"])
+
 
 class BridgeTests(unittest.TestCase):
     def test_serves_art_light_and_photo_per_tv(self):

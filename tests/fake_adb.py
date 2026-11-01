@@ -67,6 +67,9 @@ class FakeTV:
             return "  mCurrentDream=app.anytvart/.ArtDream\n" if self.dreaming_ours and self.wake == "Dreaming" else ""
         if cmd.startswith("dumpsys activity"):
             return "  topResumedActivity=ActivityRecord{1 u0 %s/.Main t1}\n" % self.top
+        if cmd.startswith("cmd package resolve-activity"):
+            return "priority=0 preferredOrder=0 match=0x108000 specificIndex=-1 isDefault=true\n" \
+                   "com.google.android.apps.tv.launcherx/.home.HomeActivity\n"
         if cmd.startswith("dumpsys media_session"):
             return "    state=PlaybackState {state=3, position=0}\n" if self.playing else ""
         if cmd.startswith("input keyevent KEYCODE_POWER"):
