@@ -40,7 +40,11 @@ case "$(uname -s)" in
   <key>Label</key><string>$LABEL</string>
   <key>ProgramArguments</key>
   <array>
-    <string>$BIN</string>
+    <!-- Python itself, not the .venv/bin/anytvart wrapper: in a folder whose path has a space, pip
+         makes that wrapper a /bin/sh script, and macOS privacy rules (Downloads, Documents,
+         Desktop) can block /bin/sh while still allowing Python (seen on our Mac). -->
+    <string>$ROOT/.venv/bin/python</string>
+    <string>-m</string><string>anytvart</string>
     <string>--config</string><string>$CONFIG</string>
     <string>bridge</string>
   </array>

@@ -48,6 +48,7 @@ on no other day. iPhone `.heic` photos work if `pillow-heif` installed.
 | `look.mat.colour` | `"#ece6da"` | `#` and six hex digits. **`#ffffff` and `#fefefe` are refused**: pure white glows on a screen. Try `#f1ece3` | The mat colour |
 | `look.mat.width` | `0.085` | 0.03 to 0.2 | The mat's width as a share of the screen height |
 | `look.mat.bevel` | `true` | true or false | A thin lit edge on the mat's inner opening |
+| `look.mat.core` | `"white"` | `"white"` or `"black"` | The colour of the bevel's cut edge. `"black"` is a black-core mat board: a thin dark line round the photo, which also hides a bright edge blooming on an LCD. On a dark mat the label turns light by itself |
 | `look.mat.light` | `"top-left"` | `"top-left"`, `"top-right"`, `"top"` | Where the light comes from (which edge is lit, where the shadow falls) |
 | `look.mat.shadow` | `0.5` | A number | How strong the mat's shadow on the photo is |
 | `look.grain.on` | `true` | true or false | A paper grain. Only appears where a screen pixel is small enough to carry it |

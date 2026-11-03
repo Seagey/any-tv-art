@@ -76,10 +76,11 @@ What happens from morning to night on this family:
   default, not Google's), the bridge sleeps the TV if it is awake, showing our art, and nothing is
   playing.
 - **The TV's own auto-off.** Google TV's inactivity auto-off would end the art mid-day, because art
-  gets no button presses. `anytvart apply` writes `attentive_timeout` as a backstop: **4 hours with a
-  bridge, 2 hours without** (the plan is to use the longest value the TV offers, never Never; the
-  tool does not read that value from each TV yet, so a TV that offers longer needs it set by hand).
-  Whether a given TV honours that key is a guess (G).
+  gets no button presses. `anytvart apply` writes `sleep_timeout`: the TV goes to sleep this long
+  after the last button press, **4 hours with a bridge, 2 hours without**. It does not write
+  `attentive_timeout`, because that one switches the TV off even while a film is playing (with a
+  warning first), while `sleep_timeout` waits until nothing holds the screen on. That a playing film
+  holds it off is from Android's own power code (V); not yet timed on a real TV.
 
 ## Power button behaviour
 
@@ -135,8 +136,8 @@ Files, all in `/sdcard/Android/data/app.anytvart/files/`:
 
 Settings `apply` changes, and nothing else (the tool refuses any other):
 `secure/screensaver_components`, `secure/screensaver_enabled`, `system/screen_off_timeout` (10
-minutes), `secure/attentive_timeout`. The code also allows `secure/screensaver_activate_on_sleep`,
-`secure/screensaver_activate_on_dock` and `secure/sleep_timeout`, but `apply` does not write them.
+minutes), `secure/sleep_timeout`. The code also allows `secure/screensaver_activate_on_sleep`,
+`secure/screensaver_activate_on_dock` and `secure/attentive_timeout`, but `apply` does not write them.
 Every old value is saved to `data/changes-<tv>.json` before it changes.
 
 The app is installed from `dist/any-tv-art.apk`. Build it with `sh scripts/build-apk.sh` (needs JDK 21

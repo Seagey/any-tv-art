@@ -55,7 +55,7 @@ class AndroidTests(unittest.TestCase):
         self.assertIn("removed the art app and its photos", done)
 
     def test_undo_twice_is_harmless_and_unset_keys_are_deleted(self):
-        del self.fake.settings[("secure", "attentive_timeout")]
+        del self.fake.settings[("secure", "sleep_timeout")]
         before = dict(self.fake.settings)
         setup_android.apply(self.cfg, self.cfg.tv(), "bridge", self.apk, say=lambda m: None, android=self.android())
         setup_android.undo(self.cfg, self.cfg.tv(), android=self.android())
@@ -81,7 +81,8 @@ class AndroidTests(unittest.TestCase):
         setup_android.apply(self.cfg, self.cfg.tv(), "alone", self.apk, say=lambda m: None, android=self.android())
         self.assertTrue(any(p.endswith("/config.json") for p in self.fake.pushed))
         self.assertEqual(len([p for p in self.fake.pushed if "/photos/" in p]), len(os.listdir(PHOTOS)))
-        self.assertEqual(self.fake.settings[("secure", "attentive_timeout")], "7200000")
+        self.assertEqual(self.fake.settings[("secure", "sleep_timeout")], "7200000")
+        self.assertEqual(self.fake.settings[("secure", "attentive_timeout")], "14400000")   # left alone
 
     def test_app_config_points_each_tv_at_its_own_address(self):
         got = setup_android.app_config(self.cfg, self.cfg.tv(), "bridge")

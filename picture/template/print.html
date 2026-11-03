@@ -145,11 +145,19 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
   var W = 1920, H = 1080;
 
   function fit() {
-    var s = Math.min(window.innerWidth / W, window.innerHeight / H) || 1;
-    stage.style.transform = "translate(" + (window.innerWidth - W * s) / 2 + "px," + (window.innerHeight - H * s) / 2 + "px) scale(" + s + ")";
+    // The visible size, not innerWidth: an Android TV WebView at 2x reported innerWidth 1920 while
+    // only 960 CSS pixels were on screen (visualViewport and clientWidth both 960; our 98 inch,
+    // 2 Nov 2026), which drew the picture at double size.
+    var vv = window.visualViewport, de = document.documentElement;
+    var w = (vv && vv.width) || de.clientWidth || window.innerWidth;
+    var h = (vv && vv.height) || de.clientHeight || window.innerHeight;
+    if (!w || !h) { setTimeout(fit, 50); return 1; }   // no size yet: try again shortly
+    var s = Math.min(w / W, h / H);
+    stage.style.transform = "translate(" + (w - W * s) / 2 + "px," + (h - H * s) / 2 + "px) scale(" + s + ")";
     return s;
   }
   window.addEventListener("resize", fit);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
 
   function num(v, d) { return typeof v === "number" && isFinite(v) ? v : d; }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -162,6 +170,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
       var c = (n >> b) & 255; return Math.round(amt > 0 ? c + (255 - c) * amt : c * (1 + amt));
     });
     return "#" + out.map(function (c) { return ("0" + clamp(c, 0, 255).toString(16)).slice(-2); }).join("");
+  }
+  // How light a colour is, 0 (black) to 1 (white), so the label can turn light on a dark mat.
+  function luma(hex) {
+    var m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return 1;
+    var n = parseInt(m[1], 16);
+    return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
   }
 
   // The tone curve. s is the strength, 0 (the photo as it is) to 1 (a matte print's range, about 56:1).
@@ -243,9 +257,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
     var matc = mat.colour || mat.color || "#ece6da";
     var root = document.documentElement.style;
     root.setProperty("--mat", matc);
-    root.setProperty("--core-lit", shift(matc, 0.75));    // the cut core is whiter than the mat face
-    root.setProperty("--core-shade", shift(matc, 0.12));
-    root.setProperty("--rule", shift(matc, -0.17));
+    // The cut core is whiter than the mat face, or black on a black-core board (a thin dark line
+    // round the photo, which also hides a bright edge blooming on an LCD).
+    // A dark mat with a white core shows a paper-white cut edge, lit on one side and in shade on the
+    // other, as a real black board with a white core does.
+    var blackCore = mat.core === "black", darkMat = luma(matc) < 0.4;
+    root.setProperty("--core-lit", blackCore ? "#2b2926" : darkMat ? "#e9e3d6" : shift(matc, 0.75));
+    root.setProperty("--core-shade", blackCore ? "#121110" : darkMat ? "#8f897e" : shift(matc, 0.12));
+    root.setProperty("--ink", shift(matc, darkMat ? 0.82 : -0.82));
+    root.setProperty("--ink-2", shift(matc, darkMat ? 0.5 : -0.5));
+    root.setProperty("--rule", shift(matc, darkMat ? 0.22 : -0.17));
     root.setProperty("--bevel", Math.max(1.5, Math.min(8, px(2.5))).toFixed(2) + "px"); // a 2.5 mm bevel, as cut by hand
 
     // The safe area: everything that matters stays inside what the calibration card proved visible.
@@ -255,14 +276,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
 
     var win = $("window"), box = $("words");
     if (style === "mat") {
-      // Mat width as a share of the screen height, with the bottom heavier, as framers cut it.
-      var m = clamp(num(mat.width, 0.085), 0.03, 0.2) * sh, bottom = m * 1.55;
-      var labelOn = !(look.label === false || (look.label && look.label.on === false));
-      if (!labelOn) bottom = m * 1.15;
-      win.style.left = (sx + m * 1.25 + dx) + "px"; win.style.top = (sy + m + dy) + "px";
-      win.style.width = (sw - m * 2.5) + "px"; win.style.height = (sh - m - bottom) + "px";
-      box.style.left = (sx + m * 1.25 + dx) + "px"; box.style.right = (W - sx - sw + m * 1.25 - dx) + "px";
-      box.style.top = (sy + sh - bottom + bottom * 0.32 + dy) + "px"; box.style.bottom = "auto"; box.style.height = "40px";
+      // Mat width as a share of the screen height, the same on all four sides. A heavier bottom
+      // read as uneven on the wall (98 inch test, 2 Nov 2026), and the label fits in an even border.
+      var m = clamp(num(mat.width, 0.085), 0.03, 0.2) * sh;
+      win.style.left = (sx + m + dx) + "px"; win.style.top = (sy + m + dy) + "px";
+      win.style.width = (sw - m * 2) + "px"; win.style.height = (sh - m * 2) + "px";
+      box.style.left = (sx + m + dx) + "px"; box.style.right = (W - sx - sw + m - dx) + "px";
+      box.style.top = (sy + sh - m + (m - 40) / 2 + dy) + "px"; box.style.bottom = "auto"; box.style.height = "40px";
       // The mat's shadow on the photo, falling away from the light.
       var sh0 = clamp(num(mat.shadow, 0.5), 0, 1), d = Math.max(2, px(1.5)) * (0.5 + sh0);
       var ox = light === "top-right" ? -d : light === "top" ? 0 : d;

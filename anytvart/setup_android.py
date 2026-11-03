@@ -5,8 +5,9 @@ apply() does, in order, and only after the owner has said yes (AGENTS.md):
   2. gives it its settings file (bridge address or "alone"), and in "alone" mode copies the photos
      onto the TV, after checking there is room,
   3. sets the TV's screensaver to our art and the idle time before it starts,
-  4. sets the TV's inactivity auto-off: the longest it offers with a bridge (the bridge does the
-     real night cut-off; this is the backstop if the bridge stops), or 2 hours without one.
+  4. sets how long after the last remote press the TV goes to sleep (sleep_timeout): 4 hours with a
+     bridge (the bridge does the real night cut-off; this is the backstop if it stops), or 2 hours
+     without one. Not attentive_timeout: that switches off even while a film plays.
 Every setting is read and recorded first (drivers/android.py), so undo() puts it all back.
 """
 import json
@@ -48,7 +49,7 @@ def plan(cfg, tv, mode):
            "Give it its settings: %s." % ("pictures from the bridge at %s" % cfg["bridge"].get("url") if mode == "bridge"
                                           else "it makes its own picture, no computer needed"),
            "Set the screensaver to the art, starting after %d minutes with no remote presses." % (IDLE_TO_ART_MS // 60000),
-           "Set the TV's own switch-off to %d hours with no remote presses (%s)." % (
+           "Let the TV go to sleep %d hours after the last remote press, never during a film (%s)." % (
                BACKSTOP_MS[mode] // 3600000,
                "a backstop: the bridge switches it off at night" if mode == "bridge" else "this is what ends the art each day")]
     if mode == "alone":
@@ -91,7 +92,9 @@ def apply(cfg, tv, mode, apk, say=print, android=None):
     a.put("secure", "screensaver_components", DREAM)
     a.put("secure", "screensaver_enabled", "1")
     a.put("system", "screen_off_timeout", str(IDLE_TO_ART_MS))
-    a.put("secure", "attentive_timeout", str(BACKSTOP_MS[mode]))
+    # sleep_timeout, not attentive_timeout: Android keeps the TV awake past sleep_timeout while a
+    # film holds the screen on, but attentive_timeout switches off mid-film after a warning.
+    a.put("secure", "sleep_timeout", str(BACKSTOP_MS[mode]))
     say("screensaver set to the art after %d minutes; switch-off after %d hours" % (IDLE_TO_ART_MS // 60000, BACKSTOP_MS[mode] // 3600000))
     return True
 

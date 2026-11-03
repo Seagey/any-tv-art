@@ -214,6 +214,8 @@ class Config:
             raise ConfigError('%s.mat.colour must be a colour like "#ece6da"' % where)
         if look["mat"]["colour"].lower() in ("#ffffff", "#fefefe"):
             raise ConfigError("%s.mat.colour: pure white glows on a screen and never reads as paper; try #f1ece3" % where)
+        if look["mat"].get("core", "white") not in ("white", "black"):
+            raise ConfigError('%s.mat.core must be "white" or "black"' % where)
         if not 0.03 <= float(look["mat"].get("width", 0.085)) <= 0.2:
             raise ConfigError("%s.mat.width is a share of the screen height, 0.03 to 0.2" % where)
         if look["label"].get("side", "left") not in ("left", "right"):

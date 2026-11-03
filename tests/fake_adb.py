@@ -7,7 +7,8 @@ class FakeTV:
     def __init__(self, settings=None, wake="Asleep", playing=False, dreaming_ours=False, top="com.google.android.apps.tv.launcherx"):
         self.settings = {("secure", "screensaver_components"): "com.google.android.backdrop/.Backdrop",
                          ("secure", "screensaver_enabled"): "1", ("system", "screen_off_timeout"): "900000",
-                         ("secure", "attentive_timeout"): "14400000"}
+                         ("secure", "attentive_timeout"): "14400000",
+                         ("secure", "sleep_timeout"): "-1"}
         self.settings.update(settings or {})
         self.wake, self.playing, self.dreaming_ours, self.top = wake, playing, dreaming_ours, top
         self.commands, self.installed, self.pushed, self.refuse = [], False, [], set()
