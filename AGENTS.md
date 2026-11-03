@@ -12,8 +12,8 @@ technical. Your job has eight parts, in this order, and you never skip ahead:
 7. **Test it with them watching.**
 8. **Show them the undo.**
 
-**Status you must repeat to them:** nothing in this repo has been run on a real TV yet. Every route
-is "built, not yet tested" ([README](README.md)). Say so before you start. If something fails, stop,
+**Status you must repeat to them:** one Google TV has run this repo, and no Samsung yet. Every other
+route is "built, not yet tested" ([README](README.md)). Say so before you start. If something fails, stop,
 tell them in one or two lines, and offer to fill in the tester form
 (`.github/ISSUE_TEMPLATE/tv-report.yml`) with `anytvart report`.
 

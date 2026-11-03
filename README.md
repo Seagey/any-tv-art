@@ -4,23 +4,20 @@ Turn the TV you already own into a matted picture on the wall. A photo of yours,
 off-white mat with a thin bevel and a small label (the day, the weather, what is on today), the
 way a print sits in a frame. It is like Samsung's The Frame, without buying one.
 
-![A photo in a cream mat on a TV, with a small label under it](docs/images/preview.png)
-
-*The picture is not here yet. `docs/images/preview.png` will be added once a real render has been
-photographed on a real TV.*
-
 ## Where this is up to (read this first)
 
-**Phase 1: Google TV and Samsung TVs with Art Mode only.** The code is written and the unit tests
-pass. **Nothing has been run on a real TV yet.** So every route in the table below says "Built, not
-yet tested" until the table itself says otherwise, and that only changes when a real TV has run it.
+**Phase 1: Google TV and Samsung TVs with Art Mode only.** One Google TV has run it (a 98 inch LCD,
+2 November 2026): setup with and without a computer, art after 10 minutes idle, any button back to
+TV, the label with date, weather and calendar from the bridge, and the undo. Not yet checked on that
+TV: a restart, and a film holding sleep off. **No Samsung has run this repo yet**, and no other
+Google TV. Every other route in the table says "Built, not yet tested" until a real TV has run it.
 If you try it, please tell us what happened: [the tester form](.github/ISSUE_TEMPLATE/tv-report.yml).
 
 ## Will it work on my TV?
 
 | TV | Works, tested by us | Built, not yet tested | Reported by owners | Not possible, and why |
 |---|---|---|---|---|
-| **Google TV and Android TV** (Sony, TCL, Hisense, Philips, Xiaomi, Onn, Chromecast with Google TV and others) | none yet | **Yes.** Our screensaver app, set up once over ADB. With or without a computer. [GOOGLE-TV.md](docs/GOOGLE-TV.md) | none yet | |
+| **Google TV and Android TV** (Sony, TCL, Hisense, Philips, Xiaomi, Onn, Chromecast with Google TV and others) | One 98 inch LCD Google TV, with and without a computer (2 Nov 2026) | **Yes**, every other model. Our screensaver app, set up once over ADB. With or without a computer. [GOOGLE-TV.md](docs/GOOGLE-TV.md) | none yet | |
 | **Samsung with Art Mode** (2021 and newer) | none yet | **Yes.** A fresh picture in real Art Mode each day, from a computer. The upload code comes from [smart-frame-tv](https://github.com/Seagey/smart-frame-tv), which has run on a 2021 Samsung with Art Mode, but this repo has not. [Samsung guide](docs/SAMSUNG-FRAME.md) | none yet | |
 | Samsung 2025 and newer QLED, Neo QLED and OLED with Art Mode | none yet | **Yes**, but we do not know if these accept our upload at all | none yet | |
 | LG, Sony Linux models, Fire TV, Roku, Apple TV, Hisense VIDAA, Samsung without Art Mode, any TV through an HDMI box | none yet | **No.** Not built in phase 1 | none yet | Some of these have no way in at all (Roku has no network power-on, Fire TV Vega OS has no sideloading). Each family's honest route is in [OTHER-TVS.md](docs/OTHER-TVS.md) |
