@@ -68,6 +68,20 @@ the result in `watts_art`. [POWER.md](docs/POWER.md) explains how. The cheapest 
 a wall is a TV built for it (a Samsung with Art Mode, an LG with Always Ready, an OLED at low
 brightness with the burn-in rules) or a smaller TV.
 
+## Get the app, no building and no AI
+
+The Google TV app is ready made. Download it from the
+[latest release](https://github.com/Seagey/any-tv-art/releases/latest), or on the TV itself open the
+Downloader app and type:
+
+```
+https://github.com/Seagey/any-tv-art/releases/latest/download/any-tv-art.apk
+```
+
+Installing it alone shows a sample picture. To make it the TV's screensaver and load your own photos
+you still need the one time ADB setup, which is written out step by step in
+[docs/GOOGLE-TV.md](docs/GOOGLE-TV.md). An AI agent is optional, not required.
+
 ## Quick start, with an AI agent
 
 You do not need to be technical. Give this link to Claude Code, or any AI agent that can run

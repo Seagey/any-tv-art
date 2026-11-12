@@ -237,9 +237,10 @@ Google TV:
 .venv/bin/anytvart bridge                                  # bridge mode only; keeps running
 ```
 
-`apply` prints the plan and asks for "yes" itself. It needs `dist/any-tv-art.apk` (build it with
-`sh scripts/build-apk.sh`, or download it from Releases when one exists; say plainly if there is no
-release yet). `anytvart bridge` runs in the foreground. To keep it running after a restart, run
+`apply` prints the plan and asks for "yes" itself. It needs `dist/any-tv-art.apk` (download
+`any-tv-art.apk` from the latest release at
+https://github.com/Seagey/any-tv-art/releases/latest into `dist/`, or build it with
+`sh scripts/build-apk.sh`). `anytvart bridge` runs in the foreground. To keep it running after a restart, run
 `sh scripts/service.sh install` (built, not yet tested: check `sh scripts/service.sh status` after a restart).
 
 Samsung:

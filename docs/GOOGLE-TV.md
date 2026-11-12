@@ -140,8 +140,10 @@ minutes), `secure/sleep_timeout`. The code also allows `secure/screensaver_activ
 `secure/screensaver_activate_on_dock` and `secure/attentive_timeout`, but `apply` does not write them.
 Every old value is saved to `data/changes-<tv>.json` before it changes.
 
-The app is installed from `dist/any-tv-art.apk`. Build it with `sh scripts/build-apk.sh` (needs JDK 21
-and Android SDK platform 34). There is no download on a Releases page yet. Google is rolling out
+The app is installed from `dist/any-tv-art.apk`. Download it from the
+[latest release](https://github.com/Seagey/any-tv-art/releases/latest) (or from the Downloader app on
+the TV, using `https://github.com/Seagey/any-tv-art/releases/latest/download/any-tv-art.apk`), or build
+it yourself with `sh scripts/build-apk.sh` (needs JDK 21 and Android SDK platform 34). Google is rolling out
 developer verification for sideloaded apps; Google's FAQ says ADB installs are exempt (V). We install
 over ADB, and we are watching it.
 
