@@ -158,6 +158,10 @@ uploaded are deleted. Running it twice is harmless.
 
 Not made by or affiliated with Samsung or any TV maker.
 
+## Shout me a coffee
+
+Any TV Art is free. If it made your day a bit easier and you'd like to say thanks, you can [shout me a coffee](https://buy.stripe.com/3cIdR8deM30bexRaYl6Vq0s), any amount you like.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
